@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="가챠피드">
+<meta name="description" content="서울 가챠샵 찾기, 희귀템 공유, 아이템 교환 커뮤니티">
+<title>가챠피드</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#F2F4F6;--surface:#FFFFFF;
+  --text1:#191F28;--text2:#6B7684;--text3:#B0B8C1;
+  --border:#E5E8EB;--accent:#3182F6;--accent-bg:#EBF3FF;--accent-fg:#1B64DA;
+  --warning:#FF6B00;--rare:#FF9500;--rare-bg:#FFF4E5;
+  --r-sm:8px;--r-md:12px;--r-lg:16px;
+  --nav-h:64px;--safe-b:env(safe-area-inset-bottom,0px);
+}
+html,body{height:100%;overflow:hidden}
+body{font-family:'Noto Sans KR',-apple-system,sans-serif;background:var(--bg);color:var(--text1);-webkit-font-smoothing:antialiased}
+#app{display:flex;flex-direction:column;height:100%;max-width:480px;margin:0 auto;background:var(--bg);position:relative}
+.screen{display:none;flex-direction:column;flex:1;overflow:hidden}
+.screen.active{display:flex}
+.scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding-bottom:calc(var(--nav-h) + var(--safe-b) + 12px)}
+.scroll::-webkit-scrollbar{display:none}
+.app-header{background:var(--surface);padding:12px 20px 14px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;border-bottom:1px solid var(--border)}
+.app-logo{font-size:20px;font-weight:700;color:var(--text1);letter-spacing:-0.5px}
+.app-logo em{color:var(--accent);font-style:normal}
+.header-right{display:flex;gap:2px}
+.icon-btn{width:40px;height:40px;border-radius:50%;background:transparent;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2)}
+.icon-btn:active{background:var(--bg)}
+.icon-btn .material-icons-round{font-size:22px}
+.filter-row{display:flex;gap:8px;padding:12px 20px;overflow-x:auto;-webkit-overflow-scrolling:touch;flex-shrink:0;background:var(--surface);border-bottom:1px solid var(--border)}
+.filter-row::-webkit-scrollbar{display:none}
+.chip{flex-shrink:0;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:500;border:1.5px solid var(--border);background:var(--surface);color:var(--text2);cursor:pointer;white-space:nowrap;transition:all 0.15s;font-family:inherit}
+.chip.on{background:var(--text1);border-color:var(--text1);color:#fff}
+.sec-head{padding:20px 20px 10px;display:flex;justify-content:space-between;align-items:center}
+.sec-title{font-size:17px;font-weight:700;letter-spacing:-0.3px}
+.sec-more{font-size:13px;color:var(--text2);font-weight:500;cursor:pointer;display:flex;align-items:center}
+.sec-more .material-icons-round{font-size:16px}
+.badge{font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;vertical-align:middle}
+.b-hot{background:#FFE8D6;color:#E05A00}
+.b-new{background:var(--accent-bg);color:var(--accent-fg)}
+.b-rare{background:var(--rare-bg);color:var(--rare)}
+.ad-banner{margin:12px 20px 4px;background:var(--surface);border-radius:var(--r-md);padding:12px 14px;display:flex;align-items:center;gap:10px;border:1px solid var(--border)}
+.ad-tag{font-size:9px;font-weight:700;color:var(--text3);border:1px solid var(--border);padding:2px 5px;border-radius:3px;flex-shrink:0;letter-spacing:0.5px}
+.ad-text{font-size:13px;color:var(--text2);flex:1}
+.ad-banner .material-icons-round{font-size:16px;color:var(--text3)}
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:rgba(255,255,255,0.95);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid var(--border);display:flex;padding-bottom:var(--safe-b);z-index:200}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 0 8px;border:none;background:transparent;cursor:pointer;font-family:inherit;transition:transform 0.1s}
+.nav-btn:active{transform:scale(0.88)}
+.nav-btn .material-icons-round{font-size:24px;color:var(--text3)}
+.nav-btn span.label{font-size:10px;color:var(--text3);font-weight:500}
+.nav-btn.on .material-icons-round{color:var(--text1)}
+.nav-btn.on span.label{color:var(--text1);font-weight:700}
+.fab{position:fixed;bottom:calc(var(--nav-h) + var(--safe-b) + 16px);right:max(20px,calc(50vw - 220px));width:52px;height:52px;border-radius:50%;background:var(--text1);color:#fff;border:none;display:none;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,0.22);cursor:pointer;z-index:150}
+.fab:active{transform:scale(0.91)}
+.fab .material-icons-round{font-size:24px}
+
+/* 지도 */
+#map-container{flex:1;position:relative;overflow:hidden}
+#kakao-map{width:100%;height:100%}
+.map-loading{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:var(--bg);z-index:10;padding:20px;text-align:center}
+.map-loading .material-icons-round{font-size:48px;color:var(--text3)}
+.map-loading p{font-size:15px;color:var(--text2);font-weight:600}
+.map-loading small{font-size:12px;color:var(--text3);line-height:1.6}
+.map-loading code{background:var(--surface);padding:2px 8px;border-radius:4px;font-size:11px;border:1px solid var(--border)}
+.map-overlay-btns{position:absolute;top:12px;right:12px;display:flex;flex-direction:column;gap:8px;z-index:20}
+.map-btn{width:40px;height:40px;border-radius:var(--r-sm);background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.1)}
+.map-btn .material-icons-round{font-size:20px;color:var(--text2)}
+.shop-count-badge{position:absolute;top:12px;left:12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);padding:7px 12px;display:flex;align-items:center;gap:6px;box-shadow:0 2px 8px rgba(0,0,0,0.1);z-index:20}
+.shop-count-badge .material-icons-round{font-size:16px;color:var(--accent)}
+.shop-count-badge span{font-size:13px;font-weight:600;color:var(--text1)}
+.bottom-sheet{position:absolute;bottom:0;left:0;right:0;background:var(--surface);border-radius:var(--r-lg) var(--r-lg) 0 0;border-top:1px solid var(--border);z-index:30}
+.sheet-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:10px auto 0}
+.sheet-title{padding:12px 20px 8px;font-size:15px;font-weight:700}
+.sheet-list{overflow-y:auto;max-height:220px}
+.sheet-list::-webkit-scrollbar{display:none}
+.sheet-row{display:flex;align-items:center;gap:12px;padding:12px 20px;border-bottom:1px solid var(--border);cursor:pointer}
+.sheet-row:last-child{border-bottom:none}
+.sheet-ico{width:42px;height:42px;border-radius:var(--r-sm);background:var(--accent-bg);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sheet-ico .material-icons-round{font-size:22px;color:var(--accent)}
+.sheet-info{flex:1}
+.sheet-name{font-size:14px;font-weight:600;margin-bottom:2px}
+.sheet-meta{font-size:12px;color:var(--text2)}
+.sheet-dist{font-size:12px;color:var(--text3);font-weight:500;display:flex;align-items:center;gap:2px}
+.sheet-dist .material-icons-round{font-size:14px}
+
+/* 피드 */
+.feed-list{padding:12px 20px;display:flex;flex-direction:column;gap:12px}
+.feed-card{background:var(--surface);border-radius:var(--r-lg);overflow:hidden;border:1px solid var(--border)}
+.feed-top{padding:14px 14px 10px;display:flex;align-items:center;gap:10px}
+.avatar{width:36px;height:36px;border-radius:50%;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:var(--text2);flex-shrink:0}
+.feed-uname{font-size:14px;font-weight:600;display:flex;align-items:center;gap:6px}
+.feed-meta-txt{font-size:12px;color:var(--text3);margin-top:1px}
+.feed-img{background:var(--bg);height:180px;display:flex;align-items:center;justify-content:center;border-top:1px solid var(--border);border-bottom:1px solid var(--border);color:var(--text3)}
+.feed-img .material-icons-round{font-size:48px}
+.feed-body{padding:12px 14px 10px}
+.feed-txt{font-size:14px;line-height:1.55;margin-bottom:10px}
+.feed-actions{display:flex;gap:4px;border-top:1px solid var(--border);padding-top:8px}
+.feed-act{display:flex;align-items:center;gap:4px;font-size:13px;color:var(--text2);font-weight:500;cursor:pointer;padding:6px 10px;border-radius:var(--r-sm);border:none;background:transparent;font-family:inherit}
+.feed-act:active{background:var(--bg)}
+.feed-act .material-icons-round{font-size:18px}
+.feed-act.liked .material-icons-round{color:#FF4D4F}
+.feed-act.liked{color:#FF4D4F}
+
+/* 교환 */
+.trade-list{padding:0 20px}
+.trade-row{display:flex;align-items:center;gap:14px;padding:16px 0;border-bottom:1px solid var(--border);cursor:pointer}
+.trade-row:last-child{border-bottom:none}
+.trade-thumb{width:64px;height:64px;border-radius:var(--r-md);background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--text3)}
+.trade-thumb .material-icons-round{font-size:28px}
+.trade-info{flex:1}
+.trade-name{font-size:15px;font-weight:600;margin-bottom:3px;letter-spacing:-0.2px}
+.trade-sub{font-size:13px;color:var(--text2);margin-bottom:6px}
+.trade-tags{display:flex;gap:6px}
+.ttag{font-size:11px;font-weight:600;padding:3px 8px;border-radius:6px}
+.t-sell{background:#E6F4FF;color:#1677FF}
+.t-trade{background:#F0FFF4;color:#0A8C3A}
+.t-want{background:#FFF7E6;color:#D46B08}
+.trade-price{font-size:15px;font-weight:700;flex-shrink:0;text-align:right}
+.trade-price small{display:block;font-size:11px;font-weight:400;color:var(--text3);margin-top:2px}
+
+/* MY */
+.profile-card{background:var(--surface);padding:20px 20px 0;border-bottom:1px solid var(--border);flex-shrink:0}
+.profile-row{display:flex;align-items:center;gap:14px;padding-bottom:16px;border-bottom:1px solid var(--border)}
+.profile-ava{width:58px;height:58px;border-radius:50%;background:var(--accent-bg);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:var(--accent);border:2px solid var(--accent);flex-shrink:0}
+.profile-name{font-size:18px;font-weight:700;letter-spacing:-0.3px}
+.profile-handle{font-size:13px;color:var(--text2);margin-top:2px}
+.edit-btn{margin-left:auto;padding:8px 14px;border-radius:var(--r-sm);border:1.5px solid var(--border);background:var(--surface);font-size:13px;font-weight:600;color:var(--text1);cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:4px;flex-shrink:0}
+.edit-btn .material-icons-round{font-size:15px}
+.stats-row{display:flex;padding:14px 0}
+.stat{flex:1;text-align:center;border-right:1px solid var(--border)}
+.stat:last-child{border-right:none}
+.stat-n{font-size:20px;font-weight:700;letter-spacing:-0.5px}
+.stat-l{font-size:11px;color:var(--text2);margin-top:2px;font-weight:500}
+.coll-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;padding:0 20px}
+.coll-item{aspect-ratio:1;background:var(--surface);border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;font-size:30px;border:1px solid var(--border);position:relative;cursor:pointer}
+.rare-dot{position:absolute;top:6px;right:6px;width:8px;height:8px;background:var(--rare);border-radius:50%}
+.activity-list{padding:0 20px}
+.act-row{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid var(--border)}
+.act-row:last-child{border-bottom:none}
+.act-ico{width:40px;height:40px;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--text2)}
+.act-ico .material-icons-round{font-size:20px}
+.act-txt{font-size:13px;font-weight:500}
+.act-time{font-size:12px;color:var(--text3);margin-top:2px}
+
+/* 토스트 */
+.toast{position:fixed;bottom:calc(var(--nav-h) + var(--safe-b) + 80px);left:50%;transform:translateX(-50%) translateY(16px);background:rgba(25,31,40,0.9);color:#fff;padding:10px 18px;border-radius:20px;font-size:13px;font-weight:500;opacity:0;transition:all 0.22s;pointer-events:none;z-index:999;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- 탭1: 샵 찾기 -->
+  <div class="screen active" id="s-map">
+    <div class="app-header">
+      <div class="app-logo">가챠<em>피드</em></div>
+      <div class="header-right">
+        <button class="icon-btn"><span class="material-icons-round">notifications</span></button>
+        <button class="icon-btn"><span class="material-icons-round">search</span></button>
+      </div>
+    </div>
+    <div class="filter-row" id="area-filter">
+      <div class="chip on">전체</div>
+      <div class="chip">홍대</div>
+      <div class="chip">신촌</div>
+      <div class="chip">강남</div>
+      <div class="chip">합정</div>
+      <div class="chip">이태원</div>
+    </div>
+    <div id="map-container">
+      <div id="kakao-map"></div>
+      <div class="map-loading" id="map-loading">
+        <span class="material-icons-round">map</span>
+        <p>카카오맵 API 키 미설정</p>
+        <small>
+          <code>KAKAO_APP_KEY</code> 환경변수를 설정하면<br>
+          실제 지도가 표시됩니다.<br><br>
+          Vercel → Settings → Environment Variables<br>
+          에서 추가 후 재배포하세요.
+        </small>
+      </div>
+      <div class="shop-count-badge">
+        <span class="material-icons-round">place</span>
+        <span id="shop-count">서울 가챠샵 6개</span>
+      </div>
+      <div class="map-overlay-btns">
+        <div class="map-btn" id="btn-myloc"><span class="material-icons-round">my_location</span></div>
+        <div class="map-btn" id="btn-zoomin"><span class="material-icons-round">add</span></div>
+        <div class="map-btn" id="btn-zoomout"><span class="material-icons-round">remove</span></div>
+      </div>
+      <div class="bottom-sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-title">가까운 가챠샵</div>
+        <div class="sheet-list" id="sheet-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 탭2: 피드 -->
+  <div class="screen" id="s-feed">
+    <div class="app-header">
+      <div class="app-logo">가챠<em>피드</em></div>
+      <div class="header-right">
+        <button class="icon-btn"><span class="material-icons-round">notifications</span></button>
+      </div>
+    </div>
+    <div class="filter-row">
+      <div class="chip on">전체</div>
+      <div class="chip">희귀템</div>
+      <div class="chip">자랑</div>
+      <div class="chip">샵 리뷰</div>
+      <div class="chip">정보공유</div>
+    </div>
+    <div class="scroll">
+      <div class="feed-list">
+        <div class="feed-card">
+          <div class="feed-top">
+            <div class="avatar">가</div>
+            <div><div class="feed-uname">가챠러버 <span class="badge b-rare">⭐ 레어</span></div><div class="feed-meta-txt">홍대입구 · 2분 전</div></div>
+          </div>
+          <div class="feed-img"><span class="material-icons-round">photo_library</span></div>
+          <div class="feed-body">
+            <div class="feed-txt">드디어 미피 레어 뽑았다!! 30번 만에 ㅠㅠ 홍대 가챠월드 진짜 추천해요</div>
+            <div class="feed-actions">
+              <button class="feed-act like-btn" data-count="128"><span class="material-icons-round">favorite_border</span>128</button>
+              <button class="feed-act"><span class="material-icons-round">chat_bubble_outline</span>34</button>
+              <button class="feed-act"><span class="material-icons-round">share</span>공유</button>
+            </div>
+          </div>
+        </div>
+        <div class="feed-card">
+          <div class="feed-top">
+            <div class="avatar">랜</div>
+            <div><div class="feed-uname">랜덤집착녀</div><div class="feed-meta-txt">강남 · 15분 전</div></div>
+          </div>
+          <div class="feed-img"><span class="material-icons-round">photo_library</span></div>
+          <div class="feed-body">
+            <div class="feed-txt">강남역 지하상가 숨겨진 가챠샵 발견! 산리오 전용이라 퀄리티 진짜 좋아요</div>
+            <div class="feed-actions">
+              <button class="feed-act like-btn" data-count="54"><span class="material-icons-round">favorite_border</span>54</button>
+              <button class="feed-act"><span class="material-icons-round">chat_bubble_outline</span>12</button>
+              <button class="feed-act"><span class="material-icons-round">share</span>공유</button>
+            </div>
+          </div>
+        </div>
+        <div class="feed-card">
+          <div class="feed-top">
+            <div class="avatar">포</div>
+            <div><div class="feed-uname">포켓몬마스터 <span class="badge b-rare">⭐ 레어</span></div><div class="feed-meta-txt">신촌 · 1시간 전</div></div>
+          </div>
+          <div class="feed-img"><span class="material-icons-round">photo_library</span></div>
+          <div class="feed-body">
+            <div class="feed-txt">피카츄 SR 뽑았습니다 ㅠㅠ 컬렉션 완성까지 이제 2개 남았어요</div>
+            <div class="feed-actions">
+              <button class="feed-act like-btn" data-count="211"><span class="material-icons-round">favorite_border</span>211</button>
+              <button class="feed-act"><span class="material-icons-round">chat_bubble_outline</span>67</button>
+              <button class="feed-act"><span class="material-icons-round">share</span>공유</button>
+            </div>
+          </div>
+        </div>
+        <div class="ad-banner" style="margin:0"><span class="ad-tag">AD</span><span class="ad-text">이번 주 신상 가챠 라인업 — 산리오 신작 입고</span><span class="material-icons-round">chevron_right</span></div>
+      </div>
+    </div>
+    <button class="fab" id="fab-feed"><span class="material-icons-round">edit</span></button>
+  </div>
+
+  <!-- 탭3: 교환마켓 -->
+  <div class="screen" id="s-trade">
+    <div class="app-header">
+      <div class="app-logo">교환마켓</div>
+      <div class="header-right">
+        <button class="icon-btn"><span class="material-icons-round">search</span></button>
+        <button class="icon-btn"><span class="material-icons-round">notifications</span></button>
+      </div>
+    </div>
+    <div class="filter-row">
+      <div class="chip on">전체</div><div class="chip">판매</div><div class="chip">교환</div><div class="chip">구해요</div>
+    </div>
+    <div class="scroll">
+      <div class="trade-list">
+        <div class="trade-row"><div class="trade-thumb"><span class="material-icons-round">redeem</span></div><div class="trade-info"><div class="trade-name">미피 키링 레어</div><div class="trade-sub">가챠월드 홍대점 · 직거래</div><div class="trade-tags"><span class="ttag t-sell">판매</span></div></div><div class="trade-price">3,000원<small>홍대 직거래</small></div></div>
+        <div class="trade-row"><div class="trade-thumb"><span class="material-icons-round">redeem</span></div><div class="trade-info"><div class="trade-name">산리오 쿠로미 피규어</div><div class="trade-sub">마이멜로디로 교환 원해요</div><div class="trade-tags"><span class="ttag t-trade">교환</span></div></div><div class="trade-price">교환<small>강남 직거래</small></div></div>
+        <div class="trade-row"><div class="trade-thumb"><span class="material-icons-round">redeem</span></div><div class="trade-info"><div class="trade-name">피카츄 SR 구해요</div><div class="trade-sub">가격 협의 가능, 전국 택배 OK</div><div class="trade-tags"><span class="ttag t-want">구해요</span></div></div><div class="trade-price">가격협의<small>택배 가능</small></div></div>
+        <div class="trade-row"><div class="trade-thumb"><span class="material-icons-round">redeem</span></div><div class="trade-info"><div class="trade-name">포켓몬 피규어 세트</div><div class="trade-sub">6종 풀세트 · 미개봉</div><div class="trade-tags"><span class="ttag t-sell">판매</span></div></div><div class="trade-price">15,000원<small>신촌 직거래</small></div></div>
+      </div>
+      <div class="ad-banner"><span class="ad-tag">AD</span><span class="ad-text">가챠 전용 보관 케이스 특가 판매 중</span><span class="material-icons-round">chevron_right</span></div>
+    </div>
+    <button class="fab" id="fab-trade"><span class="material-icons-round">add</span></button>
+  </div>
+
+  <!-- 탭4: MY -->
+  <div class="screen" id="s-my">
+    <div class="app-header">
+      <div class="app-logo">MY</div>
+      <div class="header-right"><button class="icon-btn"><span class="material-icons-round">settings</span></button></div>
+    </div>
+    <div class="scroll">
+      <div class="profile-card">
+        <div class="profile-row">
+          <div class="profile-ava">가</div>
+          <div><div class="profile-name">가챠러버</div><div class="profile-handle">@gachalover · 서울 홍대</div></div>
+          <button class="edit-btn"><span class="material-icons-round">edit</span>편집</button>
+        </div>
+        <div class="stats-row">
+          <div class="stat"><div class="stat-n">47</div><div class="stat-l">보유 아이템</div></div>
+          <div class="stat"><div class="stat-n">12</div><div class="stat-l">거래 완료</div></div>
+          <div class="stat"><div class="stat-n" style="color:var(--rare)">3</div><div class="stat-l">레어템</div></div>
+          <div class="stat"><div class="stat-n">128</div><div class="stat-l">팔로워</div></div>
+        </div>
+      </div>
+      <div class="sec-head"><span class="sec-title">내 컬렉션</span><span class="sec-more">전체보기<span class="material-icons-round">chevron_right</span></span></div>
+      <div class="coll-grid">
+        <div class="coll-item">🐰<div class="rare-dot"></div></div>
+        <div class="coll-item">🎀</div>
+        <div class="coll-item">⚡<div class="rare-dot"></div></div>
+        <div class="coll-item">🌸</div>
+        <div class="coll-item">🐱</div>
+        <div class="coll-item">🎮<div class="rare-dot"></div></div>
+      </div>
+      <div class="sec-head" style="margin-top:8px"><span class="sec-title">최근 활동</span></div>
+      <div class="activity-list">
+        <div class="act-row"><div class="act-ico"><span class="material-icons-round">favorite</span></div><div><div class="act-txt">미피 레어 게시글에 좋아요 128개</div><div class="act-time">2분 전</div></div></div>
+        <div class="act-row"><div class="act-ico"><span class="material-icons-round">swap_horiz</span></div><div><div class="act-txt">쿠로미 피규어 교환 완료</div><div class="act-time">어제</div></div></div>
+      </div>
+      <div class="ad-banner"><span class="ad-tag">AD</span><span class="ad-text">컬렉터 전용 아이템 진열장 — 첫 구매 10% 할인</span><span class="material-icons-round">chevron_right</span></div>
+    </div>
+  </div>
+
+  <nav class="bottom-nav">
+    <button class="nav-btn on" onclick="goTab('map',this)"><span class="material-icons-round">place</span><span class="label">샵 찾기</span></button>
+    <button class="nav-btn" onclick="goTab('feed',this)"><span class="material-icons-round">home</span><span class="label">피드</span></button>
+    <button class="nav-btn" onclick="goTab('trade',this)"><span class="material-icons-round">swap_horiz</span><span class="label">교환마켓</span></button>
+    <button class="nav-btn" onclick="goTab('my',this)"><span class="material-icons-round">person</span><span class="label">MY</span></button>
+  </nav>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const SHOPS=[
+  {id:1,name:'가챠월드 홍대점',area:'홍대',tags:'캐릭터, 애니, 피규어',lat:37.5563,lng:126.9236,hot:true},
+  {id:2,name:'캡슐토이 신촌',area:'신촌',tags:'음식, 동물, 키링',lat:37.5596,lng:126.9395,isNew:true},
+  {id:3,name:'랜덤토이 마포',area:'합정',tags:'뱃지, 스티커, 피규어',lat:37.5478,lng:126.9013},
+  {id:4,name:'산리오 가챠 강남',area:'강남',tags:'산리오, 캐릭터',lat:37.4980,lng:127.0276,hot:true},
+  {id:5,name:'포켓몬 캡슐 합정',area:'합정',tags:'포켓몬, 피규어',lat:37.5494,lng:126.9138},
+  {id:6,name:'레트로토이 이태원',area:'이태원',tags:'레트로, 빈티지',lat:37.5344,lng:126.9947},
+];
+
+let kakaoMap=null, markers=[];
+
+function renderSheet(shops){
+  document.getElementById('sheet-list').innerHTML=shops.map(s=>`
+    <div class="sheet-row" onclick="focusShop(${s.lat},${s.lng})">
+      <div class="sheet-ico"><span class="material-icons-round">storefront</span></div>
+      <div class="sheet-info">
+        <div class="sheet-name">${s.name}${s.hot?' <span class="badge b-hot">HOT</span>':''}${s.isNew?' <span class="badge b-new">NEW</span>':''}</div>
+        <div class="sheet-meta">${s.area} · ${s.tags}</div>
+      </div>
+      <div class="sheet-dist"><span class="material-icons-round">near_me</span></div>
+    </div>`).join('');
+  document.getElementById('shop-count').textContent=`서울 가챠샵 ${shops.length}개`;
+}
+
+function focusShop(lat,lng){
+  if(kakaoMap){kakaoMap.setCenter(new kakao.maps.LatLng(lat,lng));kakaoMap.setLevel(3);}
+}
+
+function initMap(){
+  kakao.maps.load(()=>{
+    const el=document.getElementById('kakao-map');
+    kakaoMap=new kakao.maps.Map(el,{center:new kakao.maps.LatLng(37.5563,126.9236),level:6});
+    document.getElementById('map-loading').style.display='none';
+    SHOPS.forEach(s=>{
+      const color=s.hot?'#FF6B00':'#3182F6';
+      const ov=new kakao.maps.CustomOverlay({
+        position:new kakao.maps.LatLng(s.lat,s.lng),
+        content:`<div style="width:28px;height:28px;background:${color};border-radius:50% 50% 50% 4px;transform:rotate(-45deg);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,0.25);cursor:pointer"><span style="transform:rotate(45deg);font-size:14px">🏪</span></div>`,
+        yAnchor:1
+      });
+      ov.setMap(kakaoMap);
+      markers.push(ov);
+    });
+    document.getElementById('btn-zoomin').onclick=()=>kakaoMap.setLevel(kakaoMap.getLevel()-1);
+    document.getElementById('btn-zoomout').onclick=()=>kakaoMap.setLevel(kakaoMap.getLevel()+1);
+    document.getElementById('btn-myloc').onclick=getMyLoc;
+    getMyLoc();
+  });
+}
+
+function getMyLoc(){
+  if(!navigator.geolocation)return;
+  navigator.geolocation.getCurrentPosition(p=>{
+    if(kakaoMap)kakaoMap.setCenter(new kakao.maps.LatLng(p.coords.latitude,p.coords.longitude));
+    showToast('내 위치로 이동했어요');
+  },()=>showToast('위치 권한이 필요해요'));
+}
+
+// 카카오맵 SDK 동적 로드 (KAKAO_APP_KEY 환경변수 주입 필요)
+const KEY='8610dc19c99c75605e60351ddc8d726b';
+if(KEY){
+  const s=document.createElement('script');
+  s.src=`//dapi.kakao.com/v2/maps/sdk.js?appkey=${KEY}&autoload=false&libraries=services`;
+  s.onload=initMap;
+  document.head.appendChild(s);
+}
+renderSheet(SHOPS);
+
+// 지역 필터
+document.getElementById('area-filter').querySelectorAll('.chip').forEach(chip=>{
+  chip.addEventListener('click',function(){
+    document.getElementById('area-filter').querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));
+    this.classList.add('on');
+    const area=this.textContent;
+    renderSheet(area==='전체'?SHOPS:SHOPS.filter(s=>s.area===area));
+  });
+});
+
+function goTab(id,el){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('on'));
+  document.getElementById('s-'+id).classList.add('active');
+  el.classList.add('on');
+  document.querySelectorAll('.fab').forEach(f=>f.style.display='none');
+  const fab=document.getElementById('fab-'+id);
+  if(fab)fab.style.display='flex';
+}
+
+document.querySelectorAll('.filter-row:not(#area-filter)').forEach(row=>{
+  row.querySelectorAll('.chip').forEach(chip=>{
+    chip.addEventListener('click',function(){
+      row.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));
+      this.classList.add('on');
+    });
+  });
+});
+
+document.querySelectorAll('.like-btn').forEach(btn=>{
+  btn.addEventListener('click',function(e){
+    e.stopPropagation();
+    const liked=this.classList.contains('liked');
+    let n=parseInt(this.dataset.count);
+    if(liked){this.classList.remove('liked');n--;}else{this.classList.add('liked');n++;}
+    this.dataset.count=n;
+    this.innerHTML=`<span class="material-icons-round">${liked?'favorite_border':'favorite'}</span>${n}`;
+  });
+});
+
+document.getElementById('fab-feed').onclick=()=>showToast('글쓰기 준비 중이에요');
+document.getElementById('fab-trade').onclick=()=>showToast('상품 등록 준비 중이에요');
+
+let tt;
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),2200);
+}
+</script>
+</body>
+</html>
